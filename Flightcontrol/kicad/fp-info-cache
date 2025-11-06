@@ -1,4 +1,4 @@
-24653127378186927
+24661939404183284
 2171790001
 MOLEX_2171790001
 
@@ -13,6 +13,13 @@ SOD3715X145N
 0
 2
 2
+AMS1117-3.3
+SOT229P700X180-4N
+
+
+0
+4
+3
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -2596,6 +2603,20 @@ CONN_CCSH-W10R-04TR-BK-A_ADA
 0
 6
 6
+CONN_SM03B-GHS-TBLFSN_JST
+CONN_SM03B-GHS-TBLFSN_JST
+
+SM03B-GHS-TBLFSN 
+0
+5
+5
+CONN_SM06B-GHS-TB_JST
+CONN_SM06B-GHS-TB_JST
+
+SM06B-GHS-TB 
+0
+8
+8
 Calibration_Scale
 Gauge_10mm_Type1_CopperTop
 Gauge, Massstab, 10mm, CopperTop, Type 1,
@@ -58295,6 +58316,13 @@ Fuse Fuseholder TR5 Littelfuse/Wickmann No. 460 No560
 0
 2
 2
+GSPTS0020
+GSPTS0020
+
+PTS815 SJM 250 SMTR LFS 
+0
+4
+4
 Heatsink
 Heatsink_35x26mm_1xFixation3mm_Fischer-SK486-35
 Heatsink, 35mm x 26mm, 1x Fixation 3mm, Fischer SK486-35
@@ -92763,6 +92791,13 @@ Logo WEEE
 0
 0
 0
+TAJA226K010RNJ
+CAPMP3216X180N
+<b>TANTALUM CAPACITOR</b>
+
+0
+2
+2
 TerminalBlock
 TerminalBlock_Altech_AK300-2_P5.00mm
 Altech AK300 terminal block, pitch 5.0mm, 45 degree angled, see http://www.mouser.com/ds/2/16/PCBMETRC-24178.pdf
