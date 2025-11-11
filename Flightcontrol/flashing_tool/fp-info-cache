@@ -1,4 +1,4 @@
-24649602791388532
+24660176650290270
 2171790001
 MOLEX_2171790001
 
@@ -13,6 +13,13 @@ SOD3715X145N
 0
 2
 2
+AMS1117-3.3
+SOT229P700X180-4N
+
+
+0
+4
+3
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -27,6 +34,13 @@ audio belton reverb
 0
 7
 7
+BMP581
+BMP581
+BMP581-7
+Undefined or Miscellaneous
+0
+10
+10
 Battery
 BatteryClip_Keystone_54_D16-19mm
 Battery clip for batteries with a diameter between 16-19 mm: https://www.keyelco.com/product.cfm/product_id/826
@@ -2582,6 +2596,13 @@ speaker CUI
 0
 2
 2
+CONN_CCSH-W10R-04TR-BK-A_ADA
+CONN_CCSH-W10R-04TR-BK-A_ADA
+
+4208 
+0
+6
+6
 Calibration_Scale
 Gauge_10mm_Type1_CopperTop
 Gauge, Massstab, 10mm, CopperTop, Type 1,
@@ -58281,6 +58302,13 @@ Fuse Fuseholder TR5 Littelfuse/Wickmann No. 460 No560
 0
 2
 2
+GSPTS0020
+GSPTS0020
+
+PTS815 SJM 250 SMTR LFS 
+0
+4
+4
 Heatsink
 Heatsink_35x26mm_1xFixation3mm_Fischer-SK486-35
 Heatsink, 35mm x 26mm, 1x Fixation 3mm, Fischer SK486-35
@@ -88787,6 +88815,13 @@ WiFi IEEE802.11 b/g/n
 0
 44
 44
+Reddy_kilowatt
+Reddy_kilowatt
+
+
+0
+0
+0
 Relay_SMD
 Relay_2P2T_10x6mm_TE_IMxxG
 Signal Relay, 10x6mm, 2 Form C, Gull Wings, https://www.te.com/commerce/DocumentDelivery/DDEController?Action=showdoc&DocId=Data+Sheet%7F108-98001%7FZ.1%7Fpdf%7FEnglish%7FENG_DS_108-98001_Z.1.pdf
@@ -92749,6 +92784,13 @@ Logo WEEE
 0
 0
 0
+TAJA226K010RNJ
+CAPMP3216X180N
+<b>TANTALUM CAPACITOR</b>
+
+0
+2
+2
 TerminalBlock
 TerminalBlock_Altech_AK300-2_P5.00mm
 Altech AK300 terminal block, pitch 5.0mm, 45 degree angled, see http://www.mouser.com/ds/2/16/PCBMETRC-24178.pdf
