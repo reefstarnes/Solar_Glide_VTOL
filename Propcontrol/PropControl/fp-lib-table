@@ -1,0 +1,8 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "LESD5D5")(type "KiCad")(uri "${KIPRJMOD}/Dependencies/LESD5D5.0CT1G/LESD5D5.pretty")(options "")(descr ""))
+  (lib (name "Capacitor_Prop")(type "KiCad")(uri "${KIPRJMOD}/Dependencies/C0603C104K5RACTU/Capacitor_Prop.pretty")(options "")(descr ""))
+  (lib (name "TerminaBlockProp")(type "KiCad")(uri "${KIPRJMOD}/Dependencies/1770403Terminalblock/KiCADv6/footprints.pretty/TerminaBlockProp.pretty")(options "")(descr ""))
+  (lib (name "MR60")(type "KiCad")(uri "${KIPRJMOD}/Dependencies/MR60.pretty")(options "")(descr ""))
+  (lib (name "Connector_Prop")(type "KiCad")(uri "${KIPRJMOD}/Dependencies/Connector_Prop.pretty")(options "")(descr ""))
+)
