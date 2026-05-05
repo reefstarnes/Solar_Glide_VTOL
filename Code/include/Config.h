@@ -60,7 +60,7 @@
 #define BATT_MIN_RAW_PERCENTAGE ( 123.0f - 123.0f / powf( (1.0f + powf(( (BATT_MIN_CELL_VOLTAGE) / 3.7f ), 80.0f)), 0.165f ) )
 #define BATT_MAX_RAW_PERCENTAGE ( 123.0f - 123.0f / powf( (1.0f + powf(( (BATT_MAX_CELL_VOLTAGE) / 3.7f ), 80.0f)), 0.165f ) )
 
-#define PWM_FREQ_HZ      400
+#define PWM_FREQ_HZ      50//400
 #define PWM_RESOLUTION   12
 #define PWM_TIMER        0
 #define PW_IDLE_THROTTLE 1000

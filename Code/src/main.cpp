@@ -42,16 +42,22 @@ static bool ledStatus = true;
 void setup() {
   pinMode(LED_PIN, OUTPUT);
 
-  initUSBSerial();
-  initI2C();
-  initSensors();
-  initComm();
-
   motorQM1.begin();
   motorQM2.begin();
   motorQM3.begin();
   motorQM4.begin();
   motorGM.begin();
+
+  motorQM1.setThrottle(0.0);
+  motorQM2.setThrottle(0.0);
+  motorQM3.setThrottle(0.0);
+  motorQM4.setThrottle(0.0);
+  motorGM.setThrottle(0.0);
+
+  initUSBSerial();
+  initI2C();
+  initSensors();
+  initComm();
 
   Serial.println(F("Setup complete."));
   LetThereBeLight(); //led indicator that setup is complete
@@ -67,10 +73,10 @@ void loop() {
   ImuData     imuData;
   BatteryData battData;
   RcChannels rcChannels = {0, 0, 0, 0, false};
-
+  long int loop_count = 0; //for debugging
   while (1)
   {
-
+    loop_count++;
     //Read sensors
     readBMP581(bmpData);
     readBNO085(imuData);
@@ -87,13 +93,43 @@ void loop() {
       //error handle here
     }
 
-    //abritary throttle set values.
-    motorQM1.setThrottle(0.0);
-    motorQM2.setThrottle(0.25);
-    motorQM3.setThrottle(0.5);
-    motorQM4.setThrottle(0.75);
-    motorGM.setThrottle(1.0);
-    
+    // //abritary throttle set values.
+    // motorQM1.setThrottle(0.1);
+    // delay(1000);
+    // motorQM1.setThrottle(0.0);
+    // motorQM2.setThrottle(0.1);
+    // delay(1000);
+    // motorQM2.setThrottle(0.0);
+    // motorQM3.setThrottle(0.1);
+    // delay(1000);
+    // motorQM3.setThrottle(0.0);
+    // motorQM4.setThrottle(0.1);
+    // delay(1000);
+    // motorQM4.setThrottle(0.0);
+    // motorGM.setThrottle(0.1);
+    // delay(1000);
+    // motorGM.setThrottle(0.0);
+    // delay(1000);
+
+    if (rcChannels.valid) {
+      float qThrottle = rcChannels.throttlePercent;
+
+      //Safety cutoff: anything above 15% throttle gets forced to 0
+      if (qThrottle > 0.15f) {
+        qThrottle = 0.0f;
+      }
+
+      motorQM1.setThrottle(qThrottle);
+      motorQM2.setThrottle(qThrottle);
+      motorQM3.setThrottle(qThrottle);
+      motorQM4.setThrottle(qThrottle);
+    }
+    else {
+      motorQM1.setThrottle(0.0f);
+      motorQM2.setThrottle(0.0f);
+      motorQM3.setThrottle(0.0f);
+      motorQM4.setThrottle(0.0f);
+    } 
 
     // Print results
     Serial.println(F("=================================================="));
@@ -116,8 +152,17 @@ void loop() {
     Serial.println("♣♣♣ END FRAME ♣♣♣");
 
     toggleLed();
-    delay(200);  // 0.25 seconds between prints
-
+    delay(20);
+    //for debugging
+    if (loop_count > 3000)
+    {
+      while (1)
+      {
+        //do nothing
+      }
+      
+    }
+    
   }
   
 
