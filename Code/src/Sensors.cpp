@@ -213,7 +213,8 @@ bool readBNO085(ImuData &out) {
   out = latest;
 
   //true means this call actually received at least one fresh IMU packet
-  return gotNewData && latest.valid;
+  //return gotNewData && latest.valid;
+  return latest.valid;
 }
 
 bool readBattery(BatteryData &out) {
