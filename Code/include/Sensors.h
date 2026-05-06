@@ -17,6 +17,11 @@ struct ImuData {
   float roll_deg;
   float pitch_deg;
   float yaw_deg;
+
+  float gyroX_dps;  //dps -> degrees per second
+  float gyroY_dps;
+  float gyroZ_dps;
+
 };
 
 struct BatteryData {

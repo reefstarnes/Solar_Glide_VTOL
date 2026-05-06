@@ -28,6 +28,7 @@ static float g_bmpAltZero    = 0.0f;
 
 void initI2C() {
   Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+  Wire.setClock(200000);
   delay(500);
 }
 
@@ -50,13 +51,13 @@ bool initSensors() {
    * BMP5XX_OVERSAMPLING_128X - 128x oversampling (slowest, most accurate) [2]
    * Averages internally the samples, like 64 samples that are averaged and sent.
    */
-  bmp.setTemperatureOversampling(BMP5XX_OVERSAMPLING_16X);
+  bmp.setTemperatureOversampling(BMP5XX_OVERSAMPLING_4X); ///CHANGED FROM 16 to 4
 
   /* Pressure Oversampling Settings (same options as temperature):
    * Higher oversampling = better accuracy but slower readings
    * Recommended: 16X for good balance of speed/accuracy
    */
-  bmp.setPressureOversampling(BMP5XX_OVERSAMPLING_16X);
+  bmp.setPressureOversampling(BMP5XX_OVERSAMPLING_4X); ///CHANGED FROM 16 to 4
 
   /* IIR Filter Coefficient Settings:
    * BMP5XX_IIR_FILTER_BYPASS   - No filtering (fastest response)
@@ -84,7 +85,7 @@ bool initSensors() {
    * BMP5XX_ODR_05_HZ, BMP5XX_ODR_04_HZ, BMP5XX_ODR_03_HZ, BMP5XX_ODR_02_HZ
    * BMP5XX_ODR_01_HZ, BMP5XX_ODR_0_5_HZ, BMP5XX_ODR_0_250_HZ, BMP5XX_ODR_0_125_HZ [2]
    */
-  bmp.setOutputDataRate(BMP5XX_ODR_10_HZ);  //10 samples/second
+  bmp.setOutputDataRate(BMP5XX_ODR_50_HZ);  /// CHANGED FROM 10 samples/second to 50!!
 
 
   /* Power Mode Settings:
@@ -106,8 +107,13 @@ bool initSensors() {
   Serial.println(F("BNO085 detected. Configuring reports..."));
 
   // Enable fused rotation vector (quaternion). We’ll convert to yaw/pitch/roll.
-  if (!bno.enableReport(SH2_ROTATION_VECTOR, 30000)) {
+  if (!bno.enableReport(SH2_ROTATION_VECTOR, 10000)) {
     Serial.println(F("ERROR: Could not enable BNO085 rotation vector report."));
+    return false;
+  }
+
+  if (!bno.enableReport(SH2_GYROSCOPE_CALIBRATED, 5000)) {
+    Serial.println(F("ERROR: Could not enable BNO085 gyro report."));
     return false;
   }
 
@@ -147,48 +153,67 @@ bool readBMP581(BmpData &out) {
 }
 
 bool readBNO085(ImuData &out) {
-  //Poll the IMU for a new event
-  if (!bno.getSensorEvent(&bno_sensor_value)) {
-    out.valid = false;
-    return false;
+  //Keep latest values because BNO085 sends rotation and gyro as separate events
+  static ImuData latest = {};
+  static bool haveRotation = false;
+  static bool haveGyro = false;
+
+  bool gotNewData = false;
+
+  //Drain all waiting BNO085 events
+  while (bno.getSensorEvent(&bno_sensor_value)) {
+    gotNewData = true;
+
+    //Handle rotation vector event
+    if (bno_sensor_value.sensorId == SH2_ROTATION_VECTOR) {
+
+      //Quaternion from fused rotation vector
+      float qw = bno_sensor_value.un.rotationVector.real;
+      float qx = bno_sensor_value.un.rotationVector.i;
+      float qy = bno_sensor_value.un.rotationVector.j;
+      float qz = bno_sensor_value.un.rotationVector.k;
+
+      float ysqr = qy * qy;
+
+      //roll, x-axis rotation
+      float t0   = +2.0f * (qw * qx + qy * qz);
+      float t1   = +1.0f - 2.0f * (qx * qx + ysqr);
+      float roll = atan2f(t0, t1);
+
+      //pitch, y-axis rotation
+      float t2 = +2.0f * (qw * qy - qz * qx);
+      t2       = t2 >  1.0f ?  1.0f : t2;
+      t2       = t2 < -1.0f ? -1.0f : t2;
+      float pitch = asinf(t2);
+
+      //yaw, z-axis rotation
+      float t3  = +2.0f * (qw * qz + qx * qy);
+      float t4  = +1.0f - 2.0f * (ysqr + qz * qz);
+      float yaw = atan2f(t3, t4);
+
+      //Apply angle offsets
+      latest.roll_deg  = (roll  * RAD_TO_DEG) - ROLL_OFFSET_DEG;
+      latest.pitch_deg = (pitch * RAD_TO_DEG) - PITCH_OFFSET_DEG;
+      latest.yaw_deg   = yaw   * RAD_TO_DEG;
+
+      haveRotation = true;
+    }
+
+    //Handle gyro event
+    else if (bno_sensor_value.sensorId == SH2_GYROSCOPE_CALIBRATED) {
+      latest.gyroX_dps = bno_sensor_value.un.gyroscope.x * RAD_TO_DEG;
+      latest.gyroY_dps = bno_sensor_value.un.gyroscope.y * RAD_TO_DEG;
+      latest.gyroZ_dps = bno_sensor_value.un.gyroscope.z * RAD_TO_DEG;
+
+      haveGyro = true;
+    }
   }
 
-  if (bno_sensor_value.sensorId != SH2_ROTATION_VECTOR) {
-    out.valid = false;
-    return false;
-  }
+  latest.valid = haveRotation && haveGyro;
+  out = latest;
 
-  // Quaternion from fused rotation vector
-  float qw = bno_sensor_value.un.rotationVector.real;
-  float qx = bno_sensor_value.un.rotationVector.i;
-  float qy = bno_sensor_value.un.rotationVector.j;
-  float qz = bno_sensor_value.un.rotationVector.k;
-
-  float ysqr = qy * qy;
-
-  // roll (x-axis rotation)
-  float t0   = +2.0f * (qw * qx + qy * qz);
-  float t1   = +1.0f - 2.0f * (qx * qx + ysqr);
-  float roll = atan2f(t0, t1);
-
-  // pitch (y-axis rotation)
-  float t2 = +2.0f * (qw * qy - qz * qx);
-  t2       = t2 >  1.0f ?  1.0f : t2;
-  t2       = t2 < -1.0f ? -1.0f : t2;
-  float pitch = asinf(t2);
-
-  // yaw (z-axis rotation)
-  float t3  = +2.0f * (qw * qz + qx * qy);
-  float t4  = +1.0f - 2.0f * (ysqr + qz * qz);
-  float yaw = atan2f(t3, t4);
-
-  // Arduino already defines RAD_TO_DEG in Arduino.h
-  out.roll_deg  = roll  * RAD_TO_DEG;
-  out.pitch_deg = pitch * RAD_TO_DEG;
-  out.yaw_deg   = yaw   * RAD_TO_DEG;
-  out.valid     = true;
-
-  return true;
+  //true means this call actually received at least one fresh IMU packet
+  return gotNewData && latest.valid;
 }
 
 bool readBattery(BatteryData &out) {
@@ -252,7 +277,7 @@ bool printBMP581Data(const BmpData &d) {
 }
 
 bool printBNO085Data(const ImuData &d) {
-  Serial.println(F("[BNO085] (Rotation Vector)"));
+  Serial.println(F("[BNO085] (Rotation Vector + Gyro)"));
 
   if (!d.valid) {
     Serial.println(F("  No valid IMU data.\n"));
@@ -270,6 +295,21 @@ bool printBNO085Data(const ImuData &d) {
   Serial.print(F("  Roll  (X) : "));
   Serial.print(d.roll_deg, 2);
   Serial.println(F(" °\n"));
+
+  Serial.print(F("  Gyro X : "));
+
+
+  Serial.print(d.gyroX_dps, 2);
+  Serial.println(F(" deg/s"));
+
+  Serial.print(F("  Gyro Y : "));
+  Serial.print(d.gyroY_dps, 2);
+  Serial.println(F(" deg/s"));
+
+  Serial.print(F("  Gyro Z : "));
+  Serial.print(d.gyroZ_dps, 2);
+  Serial.println(F(" deg/s\n"));
+
   return true;
 }
 

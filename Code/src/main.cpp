@@ -70,13 +70,14 @@ void loop() {
   //create variables
 
   BmpData     bmpData;
+  
   ImuData     imuData;
   BatteryData battData;
   RcChannels rcChannels = {0, 0, 0, 0, false};
-  long int loop_count = 0; //for debugging
+  //long int loop_count = 0; //for debugging
   while (1)
   {
-    loop_count++;
+    //loop_count++;
     //Read sensors
     readBMP581(bmpData);
     readBNO085(imuData);
@@ -153,15 +154,15 @@ void loop() {
 
     toggleLed();
     delay(20);
-    //for debugging
-    if (loop_count > 3000)
-    {
-      while (1)
-      {
-        //do nothing
-      }
+    // //for debugging
+    // if (loop_count > 3000)
+    // {
+    //   while (1)
+    //   {
+    //     //do nothing
+    //   }
       
-    }
+    // }
     
   }
   

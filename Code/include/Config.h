@@ -56,6 +56,10 @@
 #define BATT_NUM_CELLS        6
 #define BATT_MIN_CELL_VOLTAGE 3.3f
 #define BATT_MAX_CELL_VOLTAGE 4.2f
+
+#define ROLL_OFFSET_DEG 0.0 //subtracts val from reading
+#define PITCH_OFFSET_DEG 1.70 //subtracts val from reading
+
 //battery % approximation from Sam Gibson stackexchange: https://electronics.stackexchange.com/questions/435837/calculate-battery-percentage-on-lipo-battery
 #define BATT_MIN_RAW_PERCENTAGE ( 123.0f - 123.0f / powf( (1.0f + powf(( (BATT_MIN_CELL_VOLTAGE) / 3.7f ), 80.0f)), 0.165f ) )
 #define BATT_MAX_RAW_PERCENTAGE ( 123.0f - 123.0f / powf( (1.0f + powf(( (BATT_MAX_CELL_VOLTAGE) / 3.7f ), 80.0f)), 0.165f ) )
