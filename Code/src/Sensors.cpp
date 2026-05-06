@@ -200,13 +200,27 @@ bool readBNO085(ImuData &out) {
     }
 
     //Handle gyro event
-    else if (bno_sensor_value.sensorId == SH2_GYROSCOPE_CALIBRATED) {
-      latest.gyroX_dps = bno_sensor_value.un.gyroscope.x * RAD_TO_DEG;
-      latest.gyroY_dps = bno_sensor_value.un.gyroscope.y * RAD_TO_DEG;
-      latest.gyroZ_dps = bno_sensor_value.un.gyroscope.z * RAD_TO_DEG;
+else if (bno_sensor_value.sensorId == SH2_GYROSCOPE_CALIBRATED) {
+  float rawGyroX = bno_sensor_value.un.gyroscope.x * RAD_TO_DEG;
+  float rawGyroY = bno_sensor_value.un.gyroscope.y * RAD_TO_DEG;
+  float rawGyroZ = bno_sensor_value.un.gyroscope.z * RAD_TO_DEG;
 
-      haveGyro = true;
-    }
+  const float alpha = 0.025f; //lower = smoother, higher = faster
+
+  //First gyro reading should initialize directly, not ramp up from 0
+  if (!haveGyro) {
+    latest.gyroX_dps = rawGyroX;
+    latest.gyroY_dps = rawGyroY;
+    latest.gyroZ_dps = rawGyroZ;
+  }
+  else {
+    latest.gyroX_dps = latest.gyroX_dps + alpha * (rawGyroX - latest.gyroX_dps);
+    latest.gyroY_dps = latest.gyroY_dps + alpha * (rawGyroY - latest.gyroY_dps);
+    latest.gyroZ_dps = latest.gyroZ_dps + alpha * (rawGyroZ - latest.gyroZ_dps);
+  }
+
+  haveGyro = true;
+}
   }
 
   latest.valid = haveRotation && haveGyro;
