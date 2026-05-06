@@ -21,22 +21,29 @@ Purpose:
 #include "Config.h"
 #include "Sensors.h"
 #include "Comm.h"
-
+#include "FlightControl.h"
 
 //----------- FUNCTION PROTOTYPES-----------
 void initUSBSerial();
 void toggleLed();
 void LetThereBeLight();
+void stopAllMotors();
+void writeQuadMotors(const QuadMotorMix &mix);
+void printAllDebug(const BmpData &bmpData,
+                   const ImuData &imuData,
+                   const BatteryData &battData,
+                   const RcChannels &rcChannels);
 
 //----------- GLOBAL OBJECTS-----------
 
-Motor motorQM1(QM1_PIN, QM1_CH);
-Motor motorQM2(QM2_PIN, QM2_CH);
-Motor motorQM3(QM3_PIN, QM3_CH);
-Motor motorQM4(QM4_PIN, QM4_CH);
+Motor motorQM1(QM1_PIN, QM1_CH);  //stern_star (Right Rear)
+Motor motorQM2(QM2_PIN, QM2_CH);  //bow_star (Right Front)
+Motor motorQM3(QM3_PIN, QM3_CH); //stern_port (Left Rear)
+Motor motorQM4(QM4_PIN, QM4_CH); //bow_port (Left_Front)
 Motor motorGM (GM_PIN,  GM_CH);
 
 static bool ledStatus = true;
+#define SAFETY_CUTOFF 0.5   //cutsoff motors @x% throttle
 
 //------------------- SETUP -------------------
 void setup() {
@@ -69,11 +76,11 @@ void loop() {
 
   //create variables
 
-  BmpData     bmpData;
-  
-  ImuData     imuData;
-  BatteryData battData;
-  RcChannels rcChannels = {0, 0, 0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0};
+  BmpData     bmpData = {};
+  ImuData     imuData = {};
+  BatteryData battData = {};
+  //RcChannels rcChannels = {0, 0, 0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0};
+  RcChannels rcChannels = {};
   //long int loop_count = 0; //for debugging
   while (1)
   {
@@ -94,50 +101,38 @@ void loop() {
       //error handle here
     }
 
-    if (!rcChannels.valid || rcChannels.killSwitch) {
-      motorQM1.setThrottle(0.0f);
-      motorQM2.setThrottle(0.0f);
-      motorQM3.setThrottle(0.0f);
-      motorQM4.setThrottle(0.0f);
-      motorGM.setThrottle(0.0f);
-    }
-    else {
-      float qThrottle = rcChannels.throttlePercent;
+if (shouldStopMotors(rcChannels, imuData)) {
+  stopAllMotors();
+}
+else {
+  float qThrottle = rcChannels.throttlePercent;
 
-      //Safety cutoff: anything above 15% throttle gets forced to 0
-      if (qThrottle > 0.2f) {
-        qThrottle = 0.0f;
-      }
+  //Bench safety cutoff
+  if (qThrottle > SAFETY_CUTOFF) {
+    stopAllMotors();
+  }
 
-      motorQM1.setThrottle(qThrottle);
-      motorQM2.setThrottle(qThrottle);
-      motorQM3.setThrottle(qThrottle);
-      motorQM4.setThrottle(qThrottle);
-      motorGM.setThrottle(0.0f);
-    }
+  //Do not spin at very low throttle
+  else if (qThrottle < 0.03f) {
+    stopAllMotors();
+  }
 
-    // Print results
-    Serial.println(F("=================================================="));
-    Serial.println("♠♠♠ MOTORS ♠♠♠");
-    motorQM1.printMotor("QM1");
-    motorQM2.printMotor("QM2");
-    motorQM3.printMotor("QM3");
-    motorQM4.printMotor("QM4");
-    motorGM.printMotor("GM");
-    Serial.println();
+  else {
+    ControlTargets targets = getControlTargets(rcChannels);
+    ControlCommands commands = getControlCommands(targets, imuData);
+    QuadMotorMix mix = mixQuadX(qThrottle, commands);
 
-    Serial.println("♥♥♥ SENSORS ♥♥♥");
-    printBMP581Data(bmpData);
-    printBNO085Data(imuData);
-    printBatteryData(battData);
-    Serial.println();
+    writeQuadMotors(mix);
 
-    Serial.println("♦♦♦ RC DATA ♦♦♦");
-    printCommData(rcChannels);
-    Serial.println("♣♣♣ END FRAME ♣♣♣");
+    //Keep glide motor off during quad mode
+    motorGM.setThrottle(0.0f);
+  }
+}
+
+    //void printAlldebug();
 
     toggleLed();
-    delay(20);
+    delay(10);
     // //for debugging
     // if (loop_count > 3000)
     // {
@@ -147,6 +142,15 @@ void loop() {
     //   }
       
     // }
+
+
+
+  static uint32_t lastDebugPrintMs = 0;
+
+  if (millis() - lastDebugPrintMs >= 250) {
+    lastDebugPrintMs = millis();
+    printAllDebug(bmpData, imuData, battData, rcChannels);
+  }
     
   }
   
@@ -155,6 +159,21 @@ void loop() {
 
 
 //------------------- FUNCTION DECLATIONS -------------------
+
+void stopAllMotors() {
+  motorQM1.setThrottle(0.0f);
+  motorQM2.setThrottle(0.0f);
+  motorQM3.setThrottle(0.0f);
+  motorQM4.setThrottle(0.0f);
+  motorGM.setThrottle(0.0f);
+}
+
+void writeQuadMotors(const QuadMotorMix &mix) {
+  motorQM1.setThrottle(mix.m1);
+  motorQM2.setThrottle(mix.m2);
+  motorQM3.setThrottle(mix.m3);
+  motorQM4.setThrottle(mix.m4);
+}
 
 void initUSBSerial() {
   Serial.begin(BAUD_RATE);
@@ -183,4 +202,30 @@ void LetThereBeLight(){
         toggleLed();
         delay(120);
     }
+}
+
+void printAllDebug(const BmpData &bmpData,
+                   const ImuData &imuData,
+                   const BatteryData &battData,
+                   const RcChannels &rcChannels) {
+  Serial.println(F("=================================================="));
+
+  Serial.println(F("♠♠♠ MOTORS ♠♠♠"));
+  motorQM1.printMotor("QM1");
+  motorQM2.printMotor("QM2");
+  motorQM3.printMotor("QM3");
+  motorQM4.printMotor("QM4");
+  motorGM.printMotor("GM");
+  Serial.println();
+
+  Serial.println(F("♥♥♥ SENSORS ♥♥♥"));
+  printBMP581Data(bmpData);
+  printBNO085Data(imuData);
+  printBatteryData(battData);
+  Serial.println();
+
+  Serial.println(F("♦♦♦ RC DATA ♦♦♦"));
+  printCommData(rcChannels);
+
+  Serial.println(F("♣♣♣ END FRAME ♣♣♣"));
 }
