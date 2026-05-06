@@ -3,24 +3,29 @@
 
 //------------------- TUNING VALUES -------------------
 
-//Start conservative for first testing
+//Stick command limits
 static const float MAX_ANGLE_DEG = 8.0f;
 static const float MAX_YAW_RATE_DPS = 50.0f;
 
-//PD gains for roll and pitch
-static const float KP_ROLL  = 0.005f;
-static const float KD_ROLL  = 0.0012f;
+//PD gains for roll
+static const float KP_ROLL = 0.0020f;
+static const float KD_ROLL = 0.0006f;
 
-static const float KP_PITCH = 0.005f;
-static const float KD_PITCH = 0.0012f;
+//PD gains for pitch
+static const float KP_PITCH = 0.0040f;
+static const float KD_PITCH = 0.0024f;
 
-//P gain for yaw rate
-//static const float KP_YAW_RATE = 0.0008f;
-static const float KP_YAW_RATE = 0.0015f;
+//PI gains for yaw rate
+static const float KP_YAW_RATE = 0.0065f;
+static const float KI_YAW_RATE = 0.00130f;
+
 //Correction limits
-static const float MAX_ROLL_CMD  = 0.06f;
-static const float MAX_PITCH_CMD = 0.06f;
-static const float MAX_YAW_CMD   = 0.08f;
+static const float MAX_ROLL_CMD  = 0.050f;
+static const float MAX_PITCH_CMD = 0.060f;
+static const float MAX_YAW_CMD   = 0.390f;
+
+//Integral limit for yaw only
+static const float MAX_YAW_INTEGRAL = 312.0f;
 
 //Safety limit
 static const float MAX_SAFE_ANGLE_DEG = 45.0f;
@@ -109,16 +114,40 @@ ControlTargets getControlTargets(const RcChannels &rc) {
 ControlCommands getControlCommands(const ControlTargets &target, const ImuData &imu) {
   ControlCommands cmd;
 
+  static float yawIntegral = 0.0f;
+  static uint32_t lastUs = 0;
+
+  uint32_t nowUs = micros();
+
+  float dt = 0.0f;
+  if (lastUs != 0) {
+    dt = (nowUs - lastUs) * 0.000001f;
+  }
+  lastUs = nowUs;
+
   float rollError  = target.roll_deg  - imu.roll_deg;
   float pitchError = target.pitch_deg + imu.pitch_deg;
-  float yawError   = target.yawRate_dps + imu.gyroZ_dps;
 
-  //PD for roll/pitch: angle error with gyro damping
+  //Keep whichever yaw sign currently gives the better correction
+  float yawError = target.yawRate_dps + imu.gyroZ_dps;
+
+  //PD for roll/pitch
   cmd.rollCmd  = KP_ROLL  * rollError  - KD_ROLL  * imu.gyroX_dps;
   cmd.pitchCmd = KP_PITCH * pitchError + KD_PITCH * imu.gyroY_dps;
 
-  //P yaw-rate control
-  cmd.yawCmd = KP_YAW_RATE * yawError;
+  //Only build yaw integral when yaw stick is centered
+  if (fabsf(target.yawRate_dps) < 5.0f) {
+    if (dt > 0.0f && dt < 0.05f) {
+      yawIntegral += yawError * dt;
+      yawIntegral = clampFloat(yawIntegral, -MAX_YAW_INTEGRAL, MAX_YAW_INTEGRAL);
+    }
+  }
+  else {
+    yawIntegral = 0.0f;
+  }
+
+  //PI yaw-rate control
+  cmd.yawCmd = KP_YAW_RATE * yawError + KI_YAW_RATE * yawIntegral;
 
   cmd.rollCmd  = clampFloat(cmd.rollCmd,  -MAX_ROLL_CMD,  MAX_ROLL_CMD);
   cmd.pitchCmd = clampFloat(cmd.pitchCmd, -MAX_PITCH_CMD, MAX_PITCH_CMD);
