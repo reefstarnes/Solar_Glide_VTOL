@@ -105,7 +105,7 @@ void loop() {
       float qThrottle = rcChannels.throttlePercent;
 
       //Safety cutoff: anything above 15% throttle gets forced to 0
-      if (qThrottle > 0.15f) {
+      if (qThrottle > 0.5f) {
         qThrottle = 0.0f;
       }
 
