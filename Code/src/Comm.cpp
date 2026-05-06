@@ -39,6 +39,7 @@ bool updateComm(RcChannels &rc) {
     int chPitch = g_ibus.readChannel(CH_PITCH - 1);
     int chThrottle = g_ibus.readChannel(CH_THROTTLE - 1);
     int chYaw = g_ibus.readChannel(CH_YAW - 1);
+    int chKill = g_ibus.readChannel(CH_KILL - 1);
     
     // If any channel is negative, treat as invalid
     if (chRoll < 0) {
@@ -65,12 +66,20 @@ bool updateComm(RcChannels &rc) {
         return false;
     }
 
+    if (chKill < 0) {
+        Serial.println(F("Invalid Channel Data (Kill Switch)"));
+        rc.valid = false;
+        return false;
+}
+
 
     //Store raw values, and convert to integars 
     rc.roll = static_cast<int16_t>(chRoll);
     rc.pitch = static_cast<int16_t>(chPitch);
     rc.throttleRaw = static_cast<int16_t>(chThrottle);
     rc.yaw = static_cast<int16_t>(chYaw);
+    rc.killRaw = static_cast<int16_t>(chKill);
+    rc.killSwitch = (rc.killRaw > KILL_ACTIVE_US);
 
     //Map raw throttle µs -> 0.0–1.0
     const float usMin = static_cast<float>(PW_IDLE_THROTTLE); // e.g. 1000
@@ -127,6 +136,17 @@ bool printCommData(const RcChannels &rc) {
 
     Serial.print(F("  thrNorm="));
     Serial.print(rc.throttlePercent, 3);   // 3 decimal places (0.000–1.000)
+
+    Serial.print(F("  killRaw="));
+    Serial.print(rc.killRaw);
+
+    Serial.print(F("  kill="));
+    if (rc.killSwitch) {
+        Serial.print(F("ON"));
+    }
+    else {
+        Serial.print(F("OFF"));
+    }
 
     Serial.println();
     return true;

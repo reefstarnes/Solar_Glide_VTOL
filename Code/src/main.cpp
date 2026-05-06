@@ -73,7 +73,7 @@ void loop() {
   
   ImuData     imuData;
   BatteryData battData;
-  RcChannels rcChannels = {0, 0, 0, 0, false};
+  RcChannels rcChannels = {0, 0, 0, 0, false, 0, false};
   //long int loop_count = 0; //for debugging
   while (1)
   {
@@ -94,25 +94,14 @@ void loop() {
       //error handle here
     }
 
-    // //abritary throttle set values.
-    // motorQM1.setThrottle(0.1);
-    // delay(1000);
-    // motorQM1.setThrottle(0.0);
-    // motorQM2.setThrottle(0.1);
-    // delay(1000);
-    // motorQM2.setThrottle(0.0);
-    // motorQM3.setThrottle(0.1);
-    // delay(1000);
-    // motorQM3.setThrottle(0.0);
-    // motorQM4.setThrottle(0.1);
-    // delay(1000);
-    // motorQM4.setThrottle(0.0);
-    // motorGM.setThrottle(0.1);
-    // delay(1000);
-    // motorGM.setThrottle(0.0);
-    // delay(1000);
-
-    if (rcChannels.valid) {
+    if (!rcChannels.valid || rcChannels.killSwitch) {
+      motorQM1.setThrottle(0.0f);
+      motorQM2.setThrottle(0.0f);
+      motorQM3.setThrottle(0.0f);
+      motorQM4.setThrottle(0.0f);
+      motorGM.setThrottle(0.0f);
+    }
+    else {
       float qThrottle = rcChannels.throttlePercent;
 
       //Safety cutoff: anything above 15% throttle gets forced to 0
@@ -124,13 +113,8 @@ void loop() {
       motorQM2.setThrottle(qThrottle);
       motorQM3.setThrottle(qThrottle);
       motorQM4.setThrottle(qThrottle);
+      motorGM.setThrottle(0.0f);
     }
-    else {
-      motorQM1.setThrottle(0.0f);
-      motorQM2.setThrottle(0.0f);
-      motorQM3.setThrottle(0.0f);
-      motorQM4.setThrottle(0.0f);
-    } 
 
     // Print results
     Serial.println(F("=================================================="));

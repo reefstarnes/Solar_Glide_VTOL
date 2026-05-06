@@ -37,6 +37,7 @@
 #define CH_PITCH      2   // channel 2
 #define CH_THROTTLE   3   // channel 3
 #define CH_YAW        4   // channel 4
+#define CH_KILL       5   // channel 5
 
 
 //----------- CONST ADDRESS DEFINITIONS-----------
@@ -69,5 +70,6 @@
 #define PWM_TIMER        0
 #define PW_IDLE_THROTTLE 1000
 #define PW_MAX_THROTTLE  2000
+#define KILL_ACTIVE_US   1500
 
 //duty cycle [%] = 100*f*t_on

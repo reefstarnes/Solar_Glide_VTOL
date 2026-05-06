@@ -9,6 +9,9 @@ struct RcChannels {
     float throttlePercent;
     int16_t yaw;
     bool    valid;
+
+    int16_t killRaw;
+    bool killSwitch;
 };
 
 void initComm();
