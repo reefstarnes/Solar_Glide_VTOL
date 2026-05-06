@@ -15,12 +15,12 @@ static const float KP_PITCH = 0.005f;
 static const float KD_PITCH = 0.0012f;
 
 //P gain for yaw rate
-static const float KP_YAW_RATE = 0.0008f;
-
+//static const float KP_YAW_RATE = 0.0008f;
+static const float KP_YAW_RATE = 0.0015f;
 //Correction limits
 static const float MAX_ROLL_CMD  = 0.06f;
 static const float MAX_PITCH_CMD = 0.06f;
-static const float MAX_YAW_CMD   = 0.04f;
+static const float MAX_YAW_CMD   = 0.08f;
 
 //Safety limit
 static const float MAX_SAFE_ANGLE_DEG = 45.0f;
@@ -111,7 +111,7 @@ ControlCommands getControlCommands(const ControlTargets &target, const ImuData &
 
   float rollError  = target.roll_deg  - imu.roll_deg;
   float pitchError = target.pitch_deg + imu.pitch_deg;
-  float yawError   = target.yawRate_dps - imu.gyroZ_dps;
+  float yawError   = target.yawRate_dps + imu.gyroZ_dps;
 
   //PD for roll/pitch: angle error with gyro damping
   cmd.rollCmd  = KP_ROLL  * rollError  - KD_ROLL  * imu.gyroX_dps;
@@ -136,10 +136,10 @@ QuadMotorMix mixQuadX(float throttle, const ControlCommands &cmd) {
   // m3 = QM3 = stern_port = left rear
   // m4 = QM4 = bow_port   = left front
 
-  mix.m1 = throttle - cmd.pitchCmd - cmd.rollCmd - cmd.yawCmd; // right rear
-  mix.m2 = throttle + cmd.pitchCmd - cmd.rollCmd + cmd.yawCmd; // right front
-  mix.m3 = throttle - cmd.pitchCmd + cmd.rollCmd + cmd.yawCmd; // left rear
-  mix.m4 = throttle + cmd.pitchCmd + cmd.rollCmd - cmd.yawCmd; // left front
+  mix.m1 = throttle - cmd.pitchCmd - cmd.rollCmd + cmd.yawCmd; // right rear
+  mix.m2 = throttle + cmd.pitchCmd - cmd.rollCmd - cmd.yawCmd; // right front
+  mix.m3 = throttle - cmd.pitchCmd + cmd.rollCmd - cmd.yawCmd; // left rear
+  mix.m4 = throttle + cmd.pitchCmd + cmd.rollCmd + cmd.yawCmd; // left front
 
   mix.m1 = clampFloat(mix.m1, 0.0f, 1.0f);
   mix.m2 = clampFloat(mix.m2, 0.0f, 1.0f);
