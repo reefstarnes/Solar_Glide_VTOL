@@ -12,6 +12,10 @@ struct RcChannels {
 
     int16_t killRaw;
     bool killSwitch;
+
+    float rollPercent;
+    float pitchPercent;
+    float yawPercent;
 };
 
 void initComm();

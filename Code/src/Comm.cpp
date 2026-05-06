@@ -12,6 +12,38 @@ static IBusBM g_ibus;       // one instance handles both RX + telemetry
 static uint8_t g_battSensorAddr = 0;   // telemetry sensor slot
 */
 
+// ---------- PRIVATE FUNCTIONS ----------
+static float stickToPercent(int16_t raw) {
+    //Converts 1000-2000us stick value to about -1.0 to +1.0
+    const float center = 1500.0f;
+    const float deadband = 25.0f;
+
+    float delta = (float)raw - center;
+
+    if (fabsf(delta) < deadband) {
+        return 0.0f;
+    }
+
+    if (delta > 0.0f) {
+        delta = delta - deadband;
+    }
+    else {
+        delta = delta + deadband;
+    }
+
+    float x = delta / (500.0f - deadband);
+
+    if (x < -1.0f) {
+        x = -1.0f;
+    }
+
+    if (x > 1.0f) {
+        x = 1.0f;
+    }
+
+    return x;
+}
+
 // ---------- PUBLIC FUNCTIONS ----------
 
 void initComm() {
@@ -70,7 +102,7 @@ bool updateComm(RcChannels &rc) {
         Serial.println(F("Invalid Channel Data (Kill Switch)"));
         rc.valid = false;
         return false;
-}
+    }
 
 
     //Store raw values, and convert to integars 
@@ -80,6 +112,9 @@ bool updateComm(RcChannels &rc) {
     rc.yaw = static_cast<int16_t>(chYaw);
     rc.killRaw = static_cast<int16_t>(chKill);
     rc.killSwitch = (rc.killRaw > KILL_ACTIVE_US);
+    rc.rollPercent = stickToPercent(rc.roll);
+    rc.pitchPercent = stickToPercent(rc.pitch);
+    rc.yawPercent = stickToPercent(rc.yaw);
 
     //Map raw throttle µs -> 0.0–1.0
     const float usMin = static_cast<float>(PW_IDLE_THROTTLE); // e.g. 1000
@@ -99,6 +134,7 @@ bool updateComm(RcChannels &rc) {
     rc.valid = true;
     return true;
 }
+
 /*
 void sendCommBatteryPercent(float v_batt, RcChannels &rc) {
     if (g_battSensorAddr == 0) return;                          // sensor not registered
@@ -147,6 +183,15 @@ bool printCommData(const RcChannels &rc) {
     else {
         Serial.print(F("OFF"));
     }
+
+    Serial.print(F("  rollNorm="));
+    Serial.print(rc.rollPercent, 3);
+
+    Serial.print(F("  pitchNorm="));
+    Serial.print(rc.pitchPercent, 3);
+
+    Serial.print(F("  yawNorm="));
+    Serial.print(rc.yawPercent, 3);
 
     Serial.println();
     return true;

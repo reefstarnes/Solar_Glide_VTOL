@@ -73,7 +73,7 @@ void loop() {
   
   ImuData     imuData;
   BatteryData battData;
-  RcChannels rcChannels = {0, 0, 0, 0, false, 0, false};
+  RcChannels rcChannels = {0, 0, 0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0};
   //long int loop_count = 0; //for debugging
   while (1)
   {
@@ -105,7 +105,7 @@ void loop() {
       float qThrottle = rcChannels.throttlePercent;
 
       //Safety cutoff: anything above 15% throttle gets forced to 0
-      if (qThrottle > 0.5f) {
+      if (qThrottle > 0.2f) {
         qThrottle = 0.0f;
       }
 
