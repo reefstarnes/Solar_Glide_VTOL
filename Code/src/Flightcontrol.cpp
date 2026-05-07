@@ -3,6 +3,9 @@
 
 //------------------- TUNING VALUES -------------------
 
+//Trim offsets
+static const float PITCH_TRIM_DEG = 2.0f;
+
 //Stick command limits
 static const float MAX_ANGLE_DEG = 8.0f;
 static const float MAX_YAW_RATE_DPS = 50.0f;
@@ -12,8 +15,8 @@ static const float KP_ROLL = 0.0020f;
 static const float KD_ROLL = 0.0006f;
 
 //PD gains for pitch
-static const float KP_PITCH = 0.0040f;
-static const float KD_PITCH = 0.0024f;
+static const float KP_PITCH = 0.0020f;
+static const float KD_PITCH = 0.0036f;
 
 //PI gains for yaw rate
 static const float KP_YAW_RATE = 0.0065f;
@@ -84,7 +87,7 @@ ControlTargets getControlTargets(const RcChannels &rc) {
 
   //RC percent values already come from Comm.cpp
   target.roll_deg    = -rc.rollPercent * MAX_ANGLE_DEG;
-  target.pitch_deg   =  rc.pitchPercent * MAX_ANGLE_DEG;
+  target.pitch_deg   =  (rc.pitchPercent * MAX_ANGLE_DEG) + PITCH_TRIM_DEG;
   target.yawRate_dps =  rc.yawPercent * MAX_YAW_RATE_DPS;
 
   return target;

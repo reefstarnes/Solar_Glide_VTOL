@@ -43,7 +43,7 @@ Motor motorQM4(QM4_PIN, QM4_CH); //bow_port (Left_Front)
 Motor motorGM (GM_PIN,  GM_CH);
 
 static bool ledStatus = true;
-#define SAFETY_CUTOFF 0.5   //cutsoff motors @x% throttle
+#define SAFETY_CUTOFF 0.8   //cutsoff motors @x% throttle
 
 //------------------- SETUP -------------------
 void setup() {
@@ -109,7 +109,8 @@ else {
 
   //Bench safety cutoff
   if (qThrottle > SAFETY_CUTOFF) {
-    stopAllMotors();
+    //stopAllMotors();
+    qThrottle = SAFETY_CUTOFF;
   }
 
   //Do not spin at very low throttle
