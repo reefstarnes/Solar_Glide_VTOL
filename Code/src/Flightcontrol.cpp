@@ -4,19 +4,20 @@
 //------------------- TUNING VALUES -------------------
 
 //Trim offsets
-static const float PITCH_TRIM_DEG = 2.0f;
+static const float PITCH_TRIM_DEG = 17.0f; //16
 
 //Stick command limits
 static const float MAX_ANGLE_DEG = 8.0f;
 static const float MAX_YAW_RATE_DPS = 50.0f;
 
 //PD gains for roll
-static const float KP_ROLL = 0.0020f;
+static const float KP_ROLL = 0.0016f;
+
 static const float KD_ROLL = 0.0006f;
 
 //PD gains for pitch
-static const float KP_PITCH = 0.0020f;
-static const float KD_PITCH = 0.0036f;
+static const float KP_PITCH = 0.0008f; //0.0020 0.0010
+static const float KD_PITCH = 0.0010f; //0.0010
 
 //PI gains for yaw rate
 static const float KP_YAW_RATE = 0.0065f;

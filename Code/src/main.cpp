@@ -43,7 +43,7 @@ Motor motorQM4(QM4_PIN, QM4_CH); //bow_port (Left_Front)
 Motor motorGM (GM_PIN,  GM_CH);
 
 static bool ledStatus = true;
-#define SAFETY_CUTOFF 0.8   //cutsoff motors @x% throttle
+#define SAFETY_CUTOFF 0.9   //cutsoff motors @x% throttle
 
 //------------------- SETUP -------------------
 void setup() {
